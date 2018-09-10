@@ -8,6 +8,18 @@ here = path.abspath(path.dirname(__file__))
 with open(path.join(here, 'README.md'), encoding='utf-8') as f:
     long_description = f.read()
 
+def get_requires(filename):
+    requirements = []
+    with open(filename, "rt") as req_file:
+        for line in req_file.read().splitlines():
+            if not line.strip().startswith("#"):
+                requirements.append(line)
+    return requirements
+
+
+project_requirements = get_requires("gb/requirements.txt")
+dev_requirements = get_requires("gb/requirements_dev.txt")
+
 setup(
     name='gb',
     version='0.0.1',
