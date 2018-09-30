@@ -17,8 +17,8 @@ def get_requires(filename):
     return requirements
 
 
-project_requirements = get_requires("gb/requirements.txt")
-dev_requirements = get_requires("gb/requirements_dev.txt")
+project_requirements = get_requires("findc/requirements.txt")
+dev_requirements = get_requires("findc/requirements_dev.txt")
 
 setup(
     name='gb',
@@ -28,12 +28,12 @@ setup(
     long_description_content_type='text/markdown',
     url='https://github.com/unjello/gb',
     author='Andrzej Lichnerowicz',
-    author_email='andrzej@lichnerowicz.pl',§
-    classifiers=[  
+    author_email='andrzej@lichnerowicz.pl',
+    classifiers=[
         'Development Status :: 3 - Alpha',
         'Intended Audience :: Developers',
         'Topic :: Software Development :: Build Tools',
-        'License :: Public Domain',
+        'License :: CC0 1.0 Universal (CC0 1.0) Public Domain Dedication',
         'Programming Language :: Python :: 2',
         'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3',
@@ -42,12 +42,12 @@ setup(
     keywords=['C/C++', 'tool', 'c', 'c++', 'cpp', 'build', 'developer'],
     packages=find_packages(exclude=['contrib', 'docs', 'tests']),
     install_requires=project_requirements,
-    extras_require={  
-        'dev': dev_requirements
+    extras_require={
+        'dev': dev_requirements,
         'test': dev_requirements,
     },
     package_data={
-        'gb': ['*.txt'],
+        '': ['LICENSE'],
     },
     entry_points={
         'console_scripts': [
