@@ -29,7 +29,7 @@ setup(
     url='https://github.com/unjello/gb',
     author='Andrzej Lichnerowicz',
     author_email='andrzej@lichnerowicz.pl',
-    classifiers=[
+    classifiers=[  
         'Development Status :: 3 - Alpha',
         'Intended Audience :: Developers',
         'Topic :: Software Development :: Build Tools',
@@ -42,9 +42,9 @@ setup(
     keywords=['C/C++', 'tool', 'c', 'c++', 'cpp', 'build', 'developer'],
     packages=find_packages(exclude=['contrib', 'docs', 'tests']),
     install_requires=project_requirements,
-    extras_require={
+    extras_require={  
         'dev': dev_requirements,
-        'test': dev_requirements,
+        'test': dev_requirements
     },
     package_data={
         '': ['LICENSE'],

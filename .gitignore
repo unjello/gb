@@ -1,1 +1,7 @@
 *~
+*.pyc
+
+# wheel dirs
+build/
+dist/
+gb.egg-info/
