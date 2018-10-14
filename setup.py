@@ -2,6 +2,7 @@
 from setuptools import setup, find_packages
 from os import path
 from io import open
+from gb import __version__ as gb_version
 
 here = path.abspath(path.dirname(__file__))
 
@@ -17,12 +18,12 @@ def get_requires(filename):
     return requirements
 
 
-project_requirements = get_requires("findc/requirements.txt")
-dev_requirements = get_requires("findc/requirements_dev.txt")
+project_requirements = get_requires("gb/requirements.txt")
+dev_requirements = get_requires("gb/requirements_dev.txt")
 
 setup(
     name='gb',
-    version='0.0.1',
+    version=gb_version,
     description='Yet another build generator for C++',
     long_description=long_description,
     long_description_content_type='text/markdown',
