@@ -2,7 +2,7 @@
 
 all: upload
 upload:
-	python setup.py sdist bdist_wheel upload
+	twine upload dist/*
 build:
 	python setup.py sdist bdist_wheel
 clean:
