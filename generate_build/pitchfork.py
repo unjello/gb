@@ -2,6 +2,13 @@ import re
 import click
 from os import path
 
+def _check_if_src_folder_exists(project_root, out=None):
+  src_path=path.join(project_root, "src")
+  if not (path.exists(src_path) and path.isdir(src_path)):
+    if out:
+      out.warning("Source folder {} not found.".format(click.style("src", fg="cyan")))
+    return False
+  return True
 
 def _check_if_build_folder_is_ignored(project_root, out=None):
   gitignore_path=path.join(project_root, ".gitignore")
@@ -19,6 +26,7 @@ def _check_if_build_folder_is_ignored(project_root, out=None):
   return True
 
 def _run_checks(project_root, out=None):
+  _check_if_src_folder_exists(project_root, out)
   _check_if_build_folder_is_ignored(project_root, out)
 
 def generate_build(project_root, out=None):
