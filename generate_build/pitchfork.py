@@ -26,8 +26,11 @@ def _check_if_build_folder_is_ignored(project_root, out=None):
   return True
 
 def _run_checks(project_root, out=None):
-  _check_if_src_folder_exists(project_root, out)
-  _check_if_build_folder_is_ignored(project_root, out)
+  checks = [_check_if_src_folder_exists, _check_if_build_folder_is_ignored]
+  for c in checks:
+    if not c(project_root, out):
+      return False
+  return True
 
 def generate_build(project_root, out=None):
   _run_checks(project_root, out)
