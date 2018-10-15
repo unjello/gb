@@ -1,7 +1,9 @@
+import os
+from pitchfork import generate_build
+
 if __name__ == '__main__':
-  from os import sys, path
-  p=path.dirname(path.dirname(path.abspath(__file__)))
-  sys.path.append(p)
+  p=os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+  os.sys.path.append(p)
 
 import click
 import six
@@ -16,6 +18,9 @@ def run(verbose):
   """
   out = Out(verbose)
   out.write("gb %s" % gb_version, bold=True)
+  working_dir = os.getcwd()
+  generate_build(working_dir, out)
+
 
 
 if __name__ == '__main__':
