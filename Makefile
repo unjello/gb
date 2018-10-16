@@ -1,13 +1,19 @@
-.PHONY: all upload build clean inst uninst
+TARGET=gb
 
-all: upload
-upload:
-	twine upload dist/*
-build:
-	python setup.py sdist bdist_wheel
+all: deps build
+
+deps: godep
+	@dep ensure
+
+build: deps
+	@go build -ldflags="-s -w" -o $(TARGET)
+
 clean:
-	rm -rf build/ dist/ generate_build.egg-info
-inst:
-	pip install --user dist/gb-`cat generate_build/__init__.py | cut -d\' -f 2`-py3-none-any.whl
-uninst:
-	pip uninstall -y generate_build
+	@rm -rf $(TARGET)
+	@rm -rf build
+
+install: build
+	@mv $(TARGET) $(GOPATH)/bin/
+
+godep:
+	@go get -u github.com/golang/dep/...

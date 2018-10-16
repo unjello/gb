@@ -1,7 +1,3 @@
 *~
-*.pyc
-
-# wheel dirs
-build/
+vendor/
 dist/
-gb.egg-info/
