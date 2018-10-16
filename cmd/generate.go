@@ -16,9 +16,9 @@ func init() {
 	rootCmd.AddCommand(generateCmd)
 }
 
-func _check_if_src_folder_exists(project_root string) error {
-	src_path := filepath.Join(project_root, "src")
-	fi, err := os.Stat(src_path)
+func checkIfSourceFolderExists(project_root string) error {
+	path := filepath.Join(project_root, "src")
+	fi, err := os.Stat(path)
 	if err != nil {
 		log.Warning("Source folder " + tui.Green("src") + " not found in project root. You should create one.")
 		return err
@@ -31,14 +31,14 @@ func _check_if_src_folder_exists(project_root string) error {
 	return nil
 }
 
-func _check_if_build_folder_is_ignored(project_root string) error {
-	gitignore_path := filepath.Join(project_root, ".gitignore")
-	if _, err := os.Stat(gitignore_path); os.IsNotExist(err) {
+func checkIfBuildFolderIsIgnored(project_root string) error {
+	path := filepath.Join(project_root, ".gitignore")
+	if _, err := os.Stat(path); os.IsNotExist(err) {
 		log.Warning("No " + tui.Green(".gitignore") + " in project root. You should create one.")
 		return err
 	}
 
-	b, err := ioutil.ReadFile(gitignore_path)
+	b, err := ioutil.ReadFile(path)
 	if err != nil {
 		log.Fatal("Could not read .gitignore contents")
 	}
@@ -60,10 +60,10 @@ var generateCmd = &cobra.Command{
 			log.Fatal("Could not get current working directory")
 		}
 		log.Info("Generating build for project dir: " + tui.Dim(cwd))
-		if _check_if_build_folder_is_ignored(cwd) != nil {
+		if checkIfBuildFolderIsIgnored(cwd) != nil {
 			return
 		}
-		if _check_if_src_folder_exists(cwd) != nil {
+		if checkIfSourceFolderExists(cwd) != nil {
 			return
 		}
 	},
