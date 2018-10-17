@@ -14,7 +14,7 @@ var cfgFile string
 
 var rootCmd = &cobra.Command{
 	Use:   "gb",
-	Short: "gb",
+	Short: "gb: Great Builder, The",
 	Long:  core.Desc,
 }
 
