@@ -50,6 +50,18 @@ func checkIfBuildFolderIsIgnored(project_root string) error {
 	return nil
 }
 
+func ensureBuildFolderExists(project_root string) error {
+	path := filepath.Join(project_root, "build")
+	log.Debug("Creating build folder " + tui.Dim(path))
+	err := os.MkdirAll(path, os.ModeDir)
+	if err != nil {
+		log.Error("Failed to create build folder " + tui.Dim(path))
+		return err
+	}
+
+	return nil
+}
+
 var generateCmd = &cobra.Command{
 	Use:   "generate",
 	Short: "Generate build files",
@@ -66,5 +78,7 @@ var generateCmd = &cobra.Command{
 		if checkIfSourceFolderExists(cwd) != nil {
 			return
 		}
+
+		ensureBuildFolderExists(cwd)
 	},
 }
