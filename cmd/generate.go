@@ -42,9 +42,9 @@ func checkIfBuildFolderIsIgnored(project_root string) error {
 	if err != nil {
 		log.Fatal("Could not read .gitignore contents")
 	}
-	r, _ := regexp.Compile("^build/?$")
-	match := r.Find(b)
-	if match == nil {
+	r, _ := regexp.Compile("(?m)^build/?$")
+	match := r.Match(b)
+	if match == false {
 		log.Warning("Your build folder " + tui.Green("build/") + " should be ignored by git. Add it to " + tui.Green(".gitignore"))
 	}
 	return nil
