@@ -53,7 +53,7 @@ func checkIfBuildFolderIsIgnored(project_root string) error {
 func ensureBuildFolderExists(project_root string) (string, error) {
 	path := filepath.Join(project_root, "build")
 	log.Debug("Creating build folder " + tui.Dim(path))
-	err := os.MkdirAll(path, os.ModeDir)
+	err := os.MkdirAll(path, os.ModeDir|0775)
 	if err != nil {
 		log.Error("Failed to create build folder " + tui.Dim(path))
 		return "", err
@@ -91,7 +91,7 @@ build all: main
 `
 	path := filepath.Join(build_root, "build.ninja")
 	log.Debug("Generating ninja build file " + tui.Dim(path))
-	err := ioutil.WriteFile(path, []byte(ninjaFile), 0644)
+	err := ioutil.WriteFile(path, []byte(ninjaFile), 0664)
 	if err != nil {
 		log.Error("Failed to create a file " + tui.Green(path) + "\n" + tui.Red(err.Error()))
 		return err
