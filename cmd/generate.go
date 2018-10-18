@@ -50,15 +50,52 @@ func checkIfBuildFolderIsIgnored(project_root string) error {
 	return nil
 }
 
-func ensureBuildFolderExists(project_root string) error {
+func ensureBuildFolderExists(project_root string) (string, error) {
 	path := filepath.Join(project_root, "build")
 	log.Debug("Creating build folder " + tui.Dim(path))
 	err := os.MkdirAll(path, os.ModeDir)
 	if err != nil {
 		log.Error("Failed to create build folder " + tui.Dim(path))
-		return err
+		return "", err
 	}
 
+	return path, nil
+}
+
+func generateNinjaBuildFile(build_root string) error {
+	ninjaFile := `
+ninja_required_version = 1.3
+
+cxx = g++-8
+srcdir = ../src
+builddir = out
+
+cxxflags = -Wall -Werror -std=c++17
+ldflags = -L$builddir
+
+
+rule cxx
+  command = $cxx $cxxflags -c ${in} -o ${out}
+  description = CXX $out
+  depfile = $out.d
+  deps = gcc
+
+rule link
+  command = $cxx $linkflags $in -o $out
+  description = LINK $out
+
+build $builddir/main.o: cxx $srcdir/main.cpp
+build main: link $builddir/main.o
+
+build all: main
+`
+	path := filepath.Join(build_root, "build.ninja")
+	log.Debug("Generating ninja build file " + tui.Dim(path))
+	err := ioutil.WriteFile(path, []byte(ninjaFile), 0644)
+	if err != nil {
+		log.Error("Failed to create a file " + tui.Green(path) + "\n" + tui.Red(err.Error()))
+		return err
+	}
 	return nil
 }
 
@@ -79,6 +116,7 @@ var generateCmd = &cobra.Command{
 			return
 		}
 
-		ensureBuildFolderExists(cwd)
+		path, _ := ensureBuildFolderExists(cwd)
+		generateNinjaBuildFile(path)
 	},
 }
