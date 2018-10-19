@@ -87,7 +87,7 @@ rule link
 build $builddir/main.o: cxx $srcdir/main.cpp
 build main: link $builddir/main.o
 
-build all: main
+build all: phony main
 `
 	path := filepath.Join(build_root, "build.ninja")
 	log.Debug("Generating ninja build file " + tui.Dim(path))
