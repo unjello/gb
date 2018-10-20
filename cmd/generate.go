@@ -1,7 +1,9 @@
 package cmd
 
 import (
+	"bytes"
 	"fmt"
+	"html/template"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -63,7 +65,7 @@ func ensureBuildFolderExists(project_root string) (string, error) {
 }
 
 func generateNinjaBuildFile(build_root string) error {
-	ninjaFile := `
+	ninjaBuildTemplate := `
 ninja_required_version = 1.3
 
 cxx = g++-8
@@ -89,9 +91,14 @@ build main: link $builddir/main.o
 
 build all: phony main
 `
+	t := template.Must(template.New("ninjaBuildTemplate").Parse(ninjaBuildTemplate))
+	buffer := new(bytes.Buffer)
+	err := t.Execute(buffer, nil)
+	ninjaFile := buffer.String()
+
 	path := filepath.Join(build_root, "build.ninja")
 	log.Debug("Generating ninja build file " + tui.Dim(path))
-	err := ioutil.WriteFile(path, []byte(ninjaFile), 0664)
+	err = ioutil.WriteFile(path, []byte(ninjaFile), 0664)
 	if err != nil {
 		log.Error("Failed to create a file " + tui.Green(path) + "\n" + tui.Red(err.Error()))
 		return err
