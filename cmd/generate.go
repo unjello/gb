@@ -65,6 +65,15 @@ func ensureBuildFolderExists(project_root string) (string, error) {
 }
 
 func generateNinjaBuildFile(build_root string) error {
+	type SourceFile struct {
+		FullPath  string
+		RelPath   string
+		BaseName  string
+		Extension string
+	}
+	type BuildInfo struct {
+		Sources []SourceFile
+	}
 	ninjaBuildTemplate := `
 ninja_required_version = 1.3
 
@@ -86,14 +95,18 @@ rule link
   command = $cxx $linkflags $in -o $out
   description = LINK $out
 
-build $builddir/main.o: cxx $srcdir/main.cpp
-build main: link $builddir/main.o
+{{range .Sources}}
+build $builddir/{{.BaseName}}.oo: cxx $srcdir/{{.RelPath}}
+{{end}}
+
+build main: link {{range .Sources}}$builddir/{{.BaseName}}.oo{{end}}
 
 build all: phony main
 `
 	t := template.Must(template.New("ninjaBuildTemplate").Parse(ninjaBuildTemplate))
 	buffer := new(bytes.Buffer)
-	err := t.Execute(buffer, nil)
+	source := SourceFile{"src/main.cpp", "main.cpp", "main", "cpp"}
+	err := t.Execute(buffer, BuildInfo{[]SourceFile{source}})
 	ninjaFile := buffer.String()
 
 	path := filepath.Join(build_root, "build.ninja")
