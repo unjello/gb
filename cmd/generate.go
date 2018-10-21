@@ -64,7 +64,7 @@ func ensureBuildFolderExists(project_root string) (string, error) {
 	return path, nil
 }
 
-func generateNinjaBuildFile(build_root string) error {
+func generateNinjaBuildFile(build_root string, projectName string) error {
 	type SourceFile struct {
 		FullPath  string
 		RelPath   string
@@ -72,6 +72,7 @@ func generateNinjaBuildFile(build_root string) error {
 		Extension string
 	}
 	type BuildInfo struct {
+		Name    string
 		Sources []SourceFile
 	}
 	ninjaBuildTemplate := `
@@ -99,14 +100,18 @@ rule link
 build $builddir/{{.BaseName}}.oo: cxx $srcdir/{{.RelPath}}
 {{end}}
 
-build main: link {{range .Sources}}$builddir/{{.BaseName}}.oo{{end}}
+build {{.Name}}: link {{range .Sources}}$builddir/{{.BaseName}}.oo{{end}}
 
-build all: phony main
+build all: phony {{.Name}}
 `
 	t := template.Must(template.New("ninjaBuildTemplate").Parse(ninjaBuildTemplate))
 	buffer := new(bytes.Buffer)
 	source := SourceFile{"src/main.cpp", "main.cpp", "main", "cpp"}
-	err := t.Execute(buffer, BuildInfo{[]SourceFile{source}})
+	buildInfo := BuildInfo{
+		projectName,
+		[]SourceFile{source},
+	}
+	err := t.Execute(buffer, buildInfo)
 	ninjaFile := buffer.String()
 
 	path := filepath.Join(build_root, "build.ninja")
@@ -137,6 +142,10 @@ var generateCmd = &cobra.Command{
 		}
 
 		path, _ := ensureBuildFolderExists(cwd)
-		generateNinjaBuildFile(path)
+
+		projectName := filepath.Base(cwd)
+		log.Info("Infering project name from folder: " + tui.Green(projectName))
+
+		generateNinjaBuildFile(path, projectName)
 	},
 }
