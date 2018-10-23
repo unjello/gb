@@ -1,9 +1,7 @@
 package cmd
 
 import (
-	"bytes"
 	"fmt"
-	"html/template"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -12,6 +10,7 @@ import (
 	"github.com/evilsocket/islazy/log"
 	"github.com/evilsocket/islazy/tui"
 	"github.com/spf13/cobra"
+	"github.com/unjello/gb/core"
 )
 
 func init() {
@@ -104,15 +103,16 @@ build {{.Name}}: link {{range .Sources}}$builddir/{{.BaseName}}.oo{{end}}
 
 build all: phony {{.Name}}
 `
-	t := template.Must(template.New("ninjaBuildTemplate").Parse(ninjaBuildTemplate))
-	buffer := new(bytes.Buffer)
 	source := SourceFile{"src/main.cpp", "main.cpp", "main", "cpp"}
 	buildInfo := BuildInfo{
 		projectName,
 		[]SourceFile{source},
 	}
-	err := t.Execute(buffer, buildInfo)
-	ninjaFile := buffer.String()
+
+	ninjaFile, err := core.ExecuteTemplate("ninjaBuildTemplate", ninjaBuildTemplate, buildInfo)
+	if err != nil {
+		return err
+	}
 
 	path := filepath.Join(build_root, "build.ninja")
 	log.Debug("Generating ninja build file " + tui.Dim(path))
