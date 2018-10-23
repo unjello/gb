@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"strings"
 
 	"github.com/evilsocket/islazy/log"
 	"github.com/evilsocket/islazy/tui"
@@ -89,13 +90,38 @@ json
 	return nil
 }
 
-func generateNinjaBuildFile(buildRoot string, projectName string) error {
-	type SourceFile struct {
-		FullPath  string
-		RelPath   string
-		BaseName  string
-		Extension string
+type SourceFile struct {
+	FullPath  string
+	RelPath   string
+	BaseName  string
+	Extension string
+}
+
+func getSourceFiles(sourceRoot string, buildRoot string) ([]SourceFile, error) {
+	sourceGlob := filepath.Join(sourceRoot, "*.cpp")
+	files, err := filepath.Glob(sourceGlob)
+	if err != nil {
+		log.Fatal("Failed to find sources using pattern: " + tui.Red(sourceGlob))
+		log.Fatal(err.Error())
+		return nil, err
 	}
+
+	sourceFiles := make([]SourceFile, 0)
+	for _, file := range files {
+		relPath, err := filepath.Rel(buildRoot, file)
+		if err != nil {
+			log.Fatal("Failed to reach " + tui.Dim(file) + " from build dir: " + tui.Dim(buildRoot))
+			return nil, err
+		}
+		base := filepath.Base(file)
+		ext := filepath.Ext(base)
+		baseName := strings.TrimRight(base, ext)
+		sourceFiles = append(sourceFiles, SourceFile{file, relPath, baseName, ext})
+	}
+	return sourceFiles, nil
+}
+
+func generateNinjaBuildFile(projectRoot string, buildRoot string, projectName string) error {
 	type BuildInfo struct {
 		Name    string
 		Sources []SourceFile
@@ -104,7 +130,6 @@ func generateNinjaBuildFile(buildRoot string, projectName string) error {
 ninja_required_version = 1.3
 
 cxx = g++-8
-srcdir = ../src
 builddir = out
 
 cxxflags = -Wall -Werror -std=c++17
@@ -122,17 +147,20 @@ rule link
   description = LINK $out
 
 {{range .Sources}}
-build $builddir/{{.BaseName}}.oo: cxx $srcdir/{{.RelPath}}
+build $builddir/{{.BaseName}}.oo: cxx {{.RelPath}}
 {{end}}
 
-build {{.Name}}: link {{range .Sources}}$builddir/{{.BaseName}}.oo{{end}}
+build {{.Name}}: link {{range .Sources}}$builddir/{{.BaseName}}.oo {{end}}
 
 build all: phony {{.Name}}
 `
-	source := SourceFile{"src/main.cpp", "main.cpp", "main", "cpp"}
+	sources, err := getSourceFiles(filepath.Join(projectRoot, "src"), buildRoot)
+	if err != nil {
+		return err
+	}
 	buildInfo := BuildInfo{
 		projectName,
-		[]SourceFile{source},
+		sources,
 	}
 
 	ninjaFile, err := core.ExecuteTemplate("ninjaBuildTemplate", ninjaBuildTemplate, buildInfo)
@@ -173,6 +201,6 @@ var generateCmd = &cobra.Command{
 		log.Info("Infering project name from folder: " + tui.Green(projectName))
 
 		generateConanDependencies(buildRoot)
-		generateNinjaBuildFile(buildRoot, projectName)
+		generateNinjaBuildFile(projectRoot, buildRoot, projectName)
 	},
 }
