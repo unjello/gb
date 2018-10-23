@@ -63,6 +63,29 @@ func ensureBuildFolderExists(project_root string) (string, error) {
 	return path, nil
 }
 
+func generateConanDependencies(build_root string) error {
+	conanFileTemplate := `
+[requires]
+doctest/2.0.0@unjello/testing
+
+[generators]
+json
+`
+	conanFile, err := core.ExecuteTemplate("conanFileTemplate", conanFileTemplate, nil)
+	if err != nil {
+		return err
+	}
+
+	path := filepath.Join(build_root, "conanfile.txt")
+	log.Debug("Generating conan dependency file " + tui.Dim(path))
+	err = ioutil.WriteFile(path, []byte(conanFile), 0664)
+	if err != nil {
+		log.Error("Failed to create a file " + tui.Green(path) + "\n" + tui.Red(err.Error()))
+		return err
+	}
+	return nil
+}
+
 func generateNinjaBuildFile(build_root string, projectName string) error {
 	type SourceFile struct {
 		FullPath  string
@@ -146,6 +169,7 @@ var generateCmd = &cobra.Command{
 		projectName := filepath.Base(cwd)
 		log.Info("Infering project name from folder: " + tui.Green(projectName))
 
+		generateConanDependencies(path)
 		generateNinjaBuildFile(path, projectName)
 	},
 }
