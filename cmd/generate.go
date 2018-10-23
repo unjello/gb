@@ -147,10 +147,10 @@ rule link
   description = LINK $out
 
 {{range .Sources}}
-build $builddir/{{.BaseName}}.oo: cxx {{.RelPath}}
+build $builddir/{{.BaseName}}.o: cxx {{.RelPath}}
 {{end}}
 
-build {{.Name}}: link {{range .Sources}}$builddir/{{.BaseName}}.oo {{end}}
+build {{.Name}}: link {{range .Sources}}$builddir/{{.BaseName}}.o {{end}}
 
 build all: phony {{.Name}}
 `
