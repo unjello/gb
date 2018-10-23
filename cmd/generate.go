@@ -89,7 +89,7 @@ json
 	return nil
 }
 
-func generateNinjaBuildFile(build_root string, projectName string) error {
+func generateNinjaBuildFile(buildRoot string, projectName string) error {
 	type SourceFile struct {
 		FullPath  string
 		RelPath   string
@@ -140,7 +140,7 @@ build all: phony {{.Name}}
 		return err
 	}
 
-	path := filepath.Join(build_root, "build.ninja")
+	path := filepath.Join(buildRoot, "build.ninja")
 	log.Debug("Generating ninja build file " + tui.Dim(path))
 	err = ioutil.WriteFile(path, []byte(ninjaFile), 0664)
 	if err != nil {
@@ -155,24 +155,24 @@ var generateCmd = &cobra.Command{
 	Short: "Generate build files",
 	Long:  `Generate build files`,
 	Run: func(cmd *cobra.Command, args []string) {
-		cwd, err := os.Getwd()
+		projectRoot, err := os.Getwd()
 		if err != nil {
 			log.Fatal("Could not get current working directory")
 		}
-		log.Info("Generating build for project dir: " + tui.Dim(cwd))
-		if checkIfBuildFolderIsIgnored(cwd) != nil {
+		log.Info("Generating build for project dir: " + tui.Dim(projectRoot))
+		if checkIfBuildFolderIsIgnored(projectRoot) != nil {
 			return
 		}
-		if checkIfSourceFolderExists(cwd) != nil {
+		if checkIfSourceFolderExists(projectRoot) != nil {
 			return
 		}
 
-		path, _ := ensureBuildFolderExists(cwd)
+		buildRoot, _ := ensureBuildFolderExists(projectRoot)
 
-		projectName := filepath.Base(cwd)
+		projectName := filepath.Base(projectRoot)
 		log.Info("Infering project name from folder: " + tui.Green(projectName))
 
-		generateConanDependencies(path)
-		generateNinjaBuildFile(path, projectName)
+		generateConanDependencies(buildRoot)
+		generateNinjaBuildFile(buildRoot, projectName)
 	},
 }
