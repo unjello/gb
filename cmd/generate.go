@@ -83,6 +83,9 @@ json
 		log.Error("Failed to create a file " + tui.Green(path) + "\n" + tui.Red(err.Error()))
 		return err
 	}
+
+	core.PrintCommand([]string{"conan", "install", "-if", "build/", "build/"}, true)
+
 	return nil
 }
 
