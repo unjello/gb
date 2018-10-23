@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/evilsocket/islazy/log"
 	homedir "github.com/mitchellh/go-homedir"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -27,7 +28,7 @@ func Execute() {
 
 func init() {
 	cobra.OnInitialize(initConfig)
-
+	log.Level = log.DEBUG
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.gb.yaml)")
 }
 
