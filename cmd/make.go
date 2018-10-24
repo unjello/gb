@@ -11,11 +11,11 @@ import (
 )
 
 func init() {
-	rootCmd.AddCommand(buildCmd)
+	rootCmd.AddCommand(makeCmd)
 }
 
-var buildCmd = &cobra.Command{
-	Use:   "build",
+var makeCmd = &cobra.Command{
+	Use:   "make",
 	Short: "Build",
 	Long:  "Build",
 	Run: func(cmd *cobra.Command, args []string) {
