@@ -134,7 +134,8 @@ ninja_required_version = 1.3
 cxx = g++-8
 builddir = out
 testsbuilddir = out/tests
-testdir = tests
+bindir = bin/
+testbindir = $bindir/tests
 
 cxxflags = -Wall -Werror -std=c++17
 ldflags = -L$builddir
@@ -165,12 +166,12 @@ build $builddir/{{.BaseName}}.o: cxx {{.RelPath}}
 build $testsbuilddir/{{.BaseName}}.o: testcxx {{.RelPath}}
 {{end}}
 
-build {{.Name}}: link {{range .Sources}}$builddir/{{.BaseName}}.o {{end}}
+build $bindir/{{.Name}}: link {{range .Sources}}$builddir/{{.BaseName}}.o {{end}}
 {{range .Tests}}
-build $testdir/{{.BaseName}}: link $testsbuilddir/{{.BaseName}}.o
+build $testbindir/{{.BaseName}}: link $testsbuilddir/{{.BaseName}}.o
 {{end}}
 
-build all: phony {{.Name}} {{range .Tests}}$testdir/{{.BaseName}} {{end}}
+build all: phony $bindir/{{.Name}} {{range .Tests}}$testbindir/{{.BaseName}} {{end}}
 
 `
 	info, err := core.ReadConanBuildInfo(filepath.Join(buildRoot, "conanbuildinfo.json"))
