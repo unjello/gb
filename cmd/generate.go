@@ -123,21 +123,32 @@ func getSourceFiles(sourceRoot string, buildRoot string) ([]SourceFile, error) {
 
 func generateNinjaBuildFile(projectRoot string, buildRoot string, projectName string) error {
 	type BuildInfo struct {
-		Name    string
-		Sources []SourceFile
+		Name          string
+		Sources       []SourceFile
+		Tests         []SourceFile
+		TestsIncludes []string
 	}
 	ninjaBuildTemplate := `
 ninja_required_version = 1.3
 
 cxx = g++-8
 builddir = out
+testsbuilddir = out/tests
+testdir = tests
 
 cxxflags = -Wall -Werror -std=c++17
 ldflags = -L$builddir
+testcxxflags = {{range .TestsIncludes}}-I {{.}} {{end}}
 
 
 rule cxx
   command = $cxx $cxxflags -c ${in} -o ${out}
+  description = CXX $out
+  depfile = $out.d
+  deps = gcc
+
+rule testcxx
+  command = $cxx $cxxflags $testcxxflags -c ${in} -o ${out}
   description = CXX $out
   depfile = $out.d
   deps = gcc
@@ -150,21 +161,52 @@ rule link
 build $builddir/{{.BaseName}}.o: cxx {{.RelPath}}
 {{end}}
 
-build {{.Name}}: link {{range .Sources}}$builddir/{{.BaseName}}.o {{end}}
+{{range .Tests}}
+build $testsbuilddir/{{.BaseName}}.o: testcxx {{.RelPath}}
+{{end}}
 
-build all: phony {{.Name}}
+build {{.Name}}: link {{range .Sources}}$builddir/{{.BaseName}}.o {{end}}
+{{range .Tests}}
+build $testdir/{{.BaseName}}: link $testsbuilddir/{{.BaseName}}.o
+{{end}}
+
+build all: phony {{.Name}} {{range .Tests}}$testdir/{{.BaseName}} {{end}}
+
 `
-	sources, err := getSourceFiles(filepath.Join(projectRoot, "src"), buildRoot)
+	info, err := core.ReadConanBuildInfo(filepath.Join(buildRoot, "conanbuildinfo.json"))
 	if err != nil {
+		log.Fatal(err.Error())
 		return err
 	}
+
+	doctest, err := core.GetTestingPackage(info)
+	if err != nil {
+		log.Fatal(err.Error())
+		return err
+	}
+
+	sources, err := getSourceFiles(filepath.Join(projectRoot, "src"), buildRoot)
+	if err != nil {
+		log.Fatal(err.Error())
+		return err
+	}
+
+	tests, err := getSourceFiles(filepath.Join(projectRoot, "test"), buildRoot)
+	if err != nil {
+		log.Fatal(err.Error())
+		return err
+	}
+
 	buildInfo := BuildInfo{
 		projectName,
 		sources,
+		tests,
+		doctest.IncludePaths,
 	}
 
 	ninjaFile, err := core.ExecuteTemplate("ninjaBuildTemplate", ninjaBuildTemplate, buildInfo)
 	if err != nil {
+		log.Fatal(err.Error())
 		return err
 	}
 
