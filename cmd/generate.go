@@ -8,6 +8,7 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/bmatcuk/doublestar"
 	"github.com/evilsocket/islazy/log"
 	"github.com/evilsocket/islazy/tui"
 	"github.com/spf13/cobra"
@@ -113,8 +114,8 @@ type SourceFile struct {
 }
 
 func getSourceFiles(sourceRoot string, buildRoot string) ([]SourceFile, error) {
-	sourceGlob := filepath.Join(sourceRoot, "*.cpp")
-	files, err := filepath.Glob(sourceGlob)
+	sourceGlob := filepath.Join(sourceRoot, "**/*.cpp")
+	files, err := doublestar.Glob(sourceGlob)
 	if err != nil {
 		log.Fatal("Failed to find sources using pattern: " + tui.Red(sourceGlob))
 		log.Fatal(err.Error())
@@ -136,12 +137,13 @@ func getSourceFiles(sourceRoot string, buildRoot string) ([]SourceFile, error) {
 	return sourceFiles, nil
 }
 
-func generateNinjaBuildFile(projectRoot string, buildRoot string, projectName string) error {
+func generateNinjaBuildFile(projectRoot string, buildRoot string, projectName string, isHeaderOnly bool) error {
 	type BuildInfo struct {
-		Name          string
-		Sources       []SourceFile
-		Tests         []SourceFile
-		TestsIncludes []string
+		Name           string
+		PublicIncludes string
+		Sources        []SourceFile
+		Tests          []SourceFile
+		TestsIncludes  []string
 	}
 	ninjaBuildTemplate := `
 ninja_required_version = 1.3
@@ -189,6 +191,40 @@ build $testbindir/{{.BaseName}}: link $testsbuilddir/{{.BaseName}}.o
 build all: phony $bindir/{{.Name}} {{range .Tests}}$testbindir/{{.BaseName}} {{end}}
 
 `
+	ninjaTestsOnlyBuildTemplate := `
+ninja_required_version = 1.3
+
+cxx = g++-8
+builddir = out
+testsbuilddir = out/tests
+bindir = bin/
+testbindir = $bindir/tests
+
+cxxflags = -Wall -Werror -std=c++17
+ldflags = -L$builddir
+testcxxflags = {{range .TestsIncludes}}-I {{.}} {{end}} -I {{.PublicIncludes}}
+
+
+rule testcxx
+  command = $cxx $cxxflags $testcxxflags -c ${in} -o ${out}
+  description = CXX $out
+  depfile = $out.d
+  deps = gcc
+
+rule link
+  command = $cxx $linkflags $in -o $out
+  description = LINK $out
+
+{{range .Tests}}
+build $testsbuilddir/{{.BaseName}}.o: testcxx {{.RelPath}}
+build $testbindir/{{.BaseName}}: link $testsbuilddir/{{.BaseName}}.o
+{{end}}
+
+
+build all: phony {{range .Tests}}$testbindir/{{.BaseName}} {{end}}
+
+`
+
 	info, err := core.ReadConanBuildInfo(filepath.Join(buildRoot, "conanbuildinfo.json"))
 	if err != nil {
 		log.Fatal(err.Error())
@@ -215,15 +251,27 @@ build all: phony $bindir/{{.Name}} {{range .Tests}}$testbindir/{{.BaseName}} {{e
 
 	buildInfo := BuildInfo{
 		projectName,
+		filepath.Join(projectRoot, "include"),
 		sources,
 		tests,
 		doctest.IncludePaths,
 	}
 
-	ninjaFile, err := core.ExecuteTemplate("ninjaBuildTemplate", ninjaBuildTemplate, buildInfo)
-	if err != nil {
-		log.Fatal(err.Error())
-		return err
+	var ninjaFile string
+	if isHeaderOnly == true {
+		var err error
+		ninjaFile, err = core.ExecuteTemplate("ninjaBuildTemplate", ninjaTestsOnlyBuildTemplate, buildInfo)
+		if err != nil {
+			log.Fatal(err.Error())
+			return err
+		}
+	} else {
+		var err error
+		ninjaFile, err = core.ExecuteTemplate("ninjaBuildTemplate", ninjaBuildTemplate, buildInfo)
+		if err != nil {
+			log.Fatal(err.Error())
+			return err
+		}
 	}
 
 	path := filepath.Join(buildRoot, "build.ninja")
@@ -247,8 +295,9 @@ var generateCmd = &cobra.Command{
 		}
 		log.Info("Generating build for project dir: " + tui.Dim(projectRoot))
 		checkIfBuildFolderIsIgnored(projectRoot)
-		checkIfSourceFolderExists(projectRoot)
-		checkIfIncludeFolderExists(projectRoot)
+		srcErr := checkIfSourceFolderExists(projectRoot)
+		includeErr := checkIfIncludeFolderExists(projectRoot)
+		isHeaderOnly := srcErr != nil && includeErr == nil
 
 		buildRoot, _ := ensureBuildFolderExists(projectRoot)
 
@@ -256,6 +305,6 @@ var generateCmd = &cobra.Command{
 		log.Info("Infering project name from folder: " + tui.Green(projectName))
 
 		generateConanDependencies(buildRoot)
-		generateNinjaBuildFile(projectRoot, buildRoot, projectName)
+		generateNinjaBuildFile(projectRoot, buildRoot, projectName, isHeaderOnly)
 	},
 }

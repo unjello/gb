@@ -2,6 +2,14 @@
 
 
 [[projects]]
+  digest = "1:2aaf2cc045d0219bba79655e4df795b973168c310574669cb75786684f7287d3"
+  name = "github.com/bmatcuk/doublestar"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "85a78806aa1b4707d1dbace9be592cf1ece91ab3"
+  version = "v1.1.1"
+
+[[projects]]
   digest = "1:caa42fe9c8e335de1a8e2a476a877c8d1b83168c5c96b566d68540c2867ebe37"
   name = "github.com/evilsocket/islazy"
   packages = [
@@ -165,6 +173,7 @@
   analyzer-name = "dep"
   analyzer-version = 1
   input-imports = [
+    "github.com/bmatcuk/doublestar",
     "github.com/evilsocket/islazy/log",
     "github.com/evilsocket/islazy/tui",
     "github.com/mitchellh/go-homedir",
