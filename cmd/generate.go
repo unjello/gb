@@ -33,6 +33,21 @@ func checkIfSourceFolderExists(project_root string) error {
 	return nil
 }
 
+func checkIfIncludeFolderExists(project_root string) error {
+	path := filepath.Join(project_root, "include")
+	fi, err := os.Stat(path)
+	if err != nil {
+		log.Warning("Include folder " + tui.Green("include") + " not found in project root. You should create one.")
+		return err
+	}
+	if mode := fi.Mode(); mode.IsDir() != true {
+		log.Warning(tui.Green("include") + " found in project root, but it is not a folder.")
+		return fmt.Errorf("Include folder is not a directory")
+	}
+
+	return nil
+}
+
 func checkIfBuildFolderIsIgnored(project_root string) error {
 	path := filepath.Join(project_root, ".gitignore")
 	if _, err := os.Stat(path); os.IsNotExist(err) {
@@ -233,6 +248,7 @@ var generateCmd = &cobra.Command{
 		log.Info("Generating build for project dir: " + tui.Dim(projectRoot))
 		checkIfBuildFolderIsIgnored(projectRoot)
 		checkIfSourceFolderExists(projectRoot)
+		checkIfIncludeFolderExists(projectRoot)
 
 		buildRoot, _ := ensureBuildFolderExists(projectRoot)
 
