@@ -231,12 +231,8 @@ var generateCmd = &cobra.Command{
 			log.Fatal("Could not get current working directory")
 		}
 		log.Info("Generating build for project dir: " + tui.Dim(projectRoot))
-		if checkIfBuildFolderIsIgnored(projectRoot) != nil {
-			return
-		}
-		if checkIfSourceFolderExists(projectRoot) != nil {
-			return
-		}
+		checkIfBuildFolderIsIgnored(projectRoot)
+		checkIfSourceFolderExists(projectRoot)
 
 		buildRoot, _ := ensureBuildFolderExists(projectRoot)
 
