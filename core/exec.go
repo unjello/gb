@@ -9,12 +9,9 @@ import (
 )
 
 const (
-	errorNoCommand             = "No command to execute"
-	debugExecutingCommand      = "Executing command: %s"
-	fatalFailedToGetStderrPipe = "Failed to get stderr pipe"
-	fatalFailedToGetStdoutPipe = "Failed to get stdout pipe"
-	fatalFailedToStartCommand  = "Failed to start command"
-	fatalCommandFailedToRun    = "Command failed to run"
+	errorNoCommand          = "No command to execute"
+	debugExecutingCommand   = "Executing command: %s"
+	fatalCommandFailedToRun = "Command failed to run"
 )
 
 func PrintCommand(command []string, isDebug bool) error {
