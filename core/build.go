@@ -8,7 +8,7 @@ import (
 	"github.com/evilsocket/islazy/tui"
 )
 
-func MakeProject() {
+func BuildProject() {
 	cwd, err := os.Getwd()
 	if err != nil {
 		log.Fatal("Could not get current working directory")

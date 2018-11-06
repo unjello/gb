@@ -6,15 +6,14 @@ import (
 )
 
 func init() {
-	rootCmd.AddCommand(makeCmd)
+	rootCmd.AddCommand(buildCmd)
 }
 
-var makeCmd = &cobra.Command{
-	Use:   "make",
-	Short: "Generate & Build",
-	Long:  "Generate & Build",
+var buildCmd = &cobra.Command{
+	Use:   "build",
+	Short: "Build",
+	Long:  "Build",
 	Run: func(cmd *cobra.Command, args []string) {
-		core.GenerateBuildScripts()
 		core.BuildProject()
 		core.RunTests()
 	},
