@@ -95,7 +95,8 @@ json
 		return err
 	}
 
-	RunCommandWithOutput([]string{"conan", "install", "-if", "build/", "build/"})
+	runner := OsCommandRunner{}
+	runner.RunWithOutput([]string{"conan", "install", "-if", "build/", "build/"})
 
 	return nil
 }

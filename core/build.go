@@ -16,5 +16,6 @@ func BuildProject() {
 	buildRoot := filepath.Join(cwd, "build")
 	log.Info("Building project: " + tui.Dim(cwd))
 	log.Info("Using build folder: " + tui.Dim(buildRoot))
-	RunCommandWithOutput([]string{"ninja", "-C", "build"})
+	runner := OsCommandRunner{}
+	runner.RunWithOutput([]string{"ninja", "-C", "build"})
 }

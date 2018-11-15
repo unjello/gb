@@ -27,8 +27,9 @@ func RunTests() error {
 		return err
 	}
 
+	runner := OsCommandRunner{}
 	for _, file := range files {
-		RunCommandWithOutput([]string{file})
+		runner.RunWithOutput([]string{file})
 	}
 	return nil
 }

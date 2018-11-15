@@ -41,5 +41,11 @@ func runCommand(command []string, showOutput bool) error {
 	return nil
 }
 
-func RunCommand(command []string) error           { return runCommand(command, false) }
-func RunCommandWithOutput(command []string) error { return runCommand(command, true) }
+type CommandRunner interface {
+	Run(command []string) error
+	RunWithOutput(command []string) error
+}
+type OsCommandRunner struct{}
+
+func (OsCommandRunner) Run(command []string) error           { return runCommand(command, false) }
+func (OsCommandRunner) RunWithOutput(command []string) error { return runCommand(command, true) }
