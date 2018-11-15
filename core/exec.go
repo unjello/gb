@@ -34,7 +34,7 @@ func runCommand(command []string, showOutput bool) error {
 	}
 
 	if err := c.Run(); err != nil {
-		log.Fatal(fatalCommandFailedToRun)
+		log.Error(fatalCommandFailedToRun)
 		return err
 	}
 
