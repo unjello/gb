@@ -95,7 +95,7 @@ json
 		return err
 	}
 
-	PrintCommand([]string{"conan", "install", "-if", "build/", "build/"}, true)
+	RunCommandWithOutput([]string{"conan", "install", "-if", "build/", "build/"})
 
 	return nil
 }

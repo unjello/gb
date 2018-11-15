@@ -28,7 +28,7 @@ func RunTests() error {
 	}
 
 	for _, file := range files {
-		PrintCommand([]string{file}, true)
+		RunCommandWithOutput([]string{file})
 	}
 	return nil
 }

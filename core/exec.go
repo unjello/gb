@@ -14,19 +14,25 @@ const (
 	fatalCommandFailedToRun = "Command failed to run"
 )
 
-func PrintCommand(command []string, isDebug bool) error {
-	return RunCommand(command)
-}
+/*
+   this little trick for testing exec.Command taken from
+   https://npf.io/2015/06/testing-exec-command/
+*/
+var execCommand = exec.Command
 
-func RunCommand(command []string) error {
+func runCommand(command []string, showOutput bool) error {
 	if len(command) < 1 {
 		return fmt.Errorf(errorNoCommand)
 	}
 	log.Debug(debugExecutingCommand, command)
 
-	c := exec.Command(command[0], command[1:]...)
-	c.Stdout = os.Stdout
-	c.Stderr = os.Stderr
+	c := execCommand(command[0], command[1:]...)
+
+	if showOutput {
+		c.Stdout = os.Stdout
+		c.Stderr = os.Stderr
+	}
+
 	if err := c.Run(); err != nil {
 		log.Fatal(fatalCommandFailedToRun)
 		return err
@@ -34,3 +40,6 @@ func RunCommand(command []string) error {
 
 	return nil
 }
+
+func RunCommand(command []string) error           { return runCommand(command, false) }
+func RunCommandWithOutput(command []string) error { return runCommand(command, true) }
