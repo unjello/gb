@@ -177,6 +177,7 @@
     "github.com/evilsocket/islazy/log",
     "github.com/evilsocket/islazy/tui",
     "github.com/mitchellh/go-homedir",
+    "github.com/spf13/afero",
     "github.com/spf13/cobra",
     "github.com/spf13/viper",
   ]
