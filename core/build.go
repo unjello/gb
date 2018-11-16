@@ -9,6 +9,10 @@ import (
 )
 
 func BuildProject() {
+	if err := VerifyNinjaExists(); err != nil {
+		log.Fatal("Could not find Ninja. Please install it from https://ninja-build.org/")
+	}
+
 	cwd, err := os.Getwd()
 	if err != nil {
 		log.Fatal("Could not get current working directory")
