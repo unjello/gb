@@ -49,3 +49,5 @@ type OsCommandRunner struct{}
 
 func (OsCommandRunner) Run(command []string) error           { return runCommand(command, false) }
 func (OsCommandRunner) RunWithOutput(command []string) error { return runCommand(command, true) }
+
+func NewOsCommandRunner() CommandRunner { return OsCommandRunner{} }

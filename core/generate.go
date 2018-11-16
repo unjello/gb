@@ -280,6 +280,10 @@ build all: phony {{range .Tests}}$testbindir/{{.BaseName}} {{end}}
 }
 
 func GenerateBuildScripts() {
+	if err := VerifyConanExists(); err != nil {
+		log.Fatal("Could not find Conan. Please install it from https://conan.io")
+	}
+
 	projectRoot, err := os.Getwd()
 	if err != nil {
 		log.Fatal("Could not get current working directory")
