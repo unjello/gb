@@ -233,6 +233,7 @@ build all: phony {{range .Tests}}$testbindir/{{.BaseName}} {{end}}
 	}
 
 	buildInfo := layout.ProjectInfo{
+		layout.Library,
 		projectName,
 		filepath.Join(projectRoot, "include"),
 		sources,

@@ -1,9 +1,15 @@
 package layout
 
 import (
+	"fmt"
 	"path/filepath"
 
+	"github.com/evilsocket/islazy/log"
 	"github.com/spf13/afero"
+)
+
+const (
+	errorUnknownProject = "Could not infer project type"
 )
 
 // AppFs is a interface to the filesystem, used for mocking tests
@@ -15,6 +21,26 @@ var AppFs = afero.NewOsFs()
 // to Ruby or Java's Maven.
 type DefaultProject struct{}
 
+func (DefaultProject) Get(root string) (ProjectInfo, error) {
+	var meta ProjectInfo
+
+	isLib, _ := isLibrary(root)
+	if isLib {
+		meta.Type = Library
+	} else {
+		isApp, _ := isApplication(root)
+		if isApp {
+			meta.Type = Application
+		} else {
+			log.Error(errorUnknownProject)
+			meta.Type = Unknwon
+			return meta, fmt.Errorf(errorUnknownProject)
+		}
+	}
+
+	return meta, nil
+}
+
 // IsLibrary returns true if a project has `include` folder,
 // that has public headers for the project. Those are headers
 // that can be included by other projects. Binary projects will
@@ -22,7 +48,7 @@ type DefaultProject struct{}
 // any headers to noone.
 // This function does not verify existance of `src` folder, as
 // header-only libraries are as good as any. (if not better:)
-func (DefaultProject) IsLibrary(root string) (bool, error) {
+func isLibrary(root string) (bool, error) {
 	includePath := filepath.Join(root, "include")
 	ok, err := afero.DirExists(AppFs, includePath)
 	if ok {
@@ -37,8 +63,8 @@ func (DefaultProject) IsLibrary(root string) (bool, error) {
 // are source files inside, or if any of them actually has `main`
 // function (or equivalnt). We lave it up to compiler, to decide
 // whether to fail or note.
-func (dp DefaultProject) IsApplication(root string) (bool, error) {
-	isLibrary, err := dp.IsLibrary(root)
+func isApplication(root string) (bool, error) {
+	isLibrary, err := isLibrary(root)
 	if isLibrary {
 		return false, nil
 	}
