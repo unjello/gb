@@ -11,6 +11,8 @@ import (
 	"github.com/bmatcuk/doublestar"
 	"github.com/evilsocket/islazy/log"
 	"github.com/evilsocket/islazy/tui"
+
+	"github.com/unjello/gb/layout"
 )
 
 func checkIfSourceFolderExists(project_root string) error {
@@ -101,14 +103,7 @@ json
 	return nil
 }
 
-type SourceFile struct {
-	FullPath  string
-	RelPath   string
-	BaseName  string
-	Extension string
-}
-
-func getSourceFiles(sourceRoot string, buildRoot string) ([]SourceFile, error) {
+func getSourceFiles(sourceRoot string, buildRoot string) ([]layout.SourceFile, error) {
 	sourceGlob := filepath.Join(sourceRoot, "**/*.cpp")
 	files, err := doublestar.Glob(sourceGlob)
 	if err != nil {
@@ -117,7 +112,7 @@ func getSourceFiles(sourceRoot string, buildRoot string) ([]SourceFile, error) {
 		return nil, err
 	}
 
-	sourceFiles := make([]SourceFile, 0)
+	sourceFiles := make([]layout.SourceFile, 0)
 	for _, file := range files {
 		relPath, err := filepath.Rel(buildRoot, file)
 		if err != nil {
@@ -127,19 +122,12 @@ func getSourceFiles(sourceRoot string, buildRoot string) ([]SourceFile, error) {
 		base := filepath.Base(file)
 		ext := filepath.Ext(base)
 		baseName := strings.TrimRight(base, ext)
-		sourceFiles = append(sourceFiles, SourceFile{file, relPath, baseName, ext})
+		sourceFiles = append(sourceFiles, layout.SourceFile{file, relPath, baseName, ext})
 	}
 	return sourceFiles, nil
 }
 
 func generateNinjaBuildFile(projectRoot string, buildRoot string, projectName string, isHeaderOnly bool) error {
-	type BuildInfo struct {
-		Name           string
-		PublicIncludes string
-		Sources        []SourceFile
-		Tests          []SourceFile
-		TestsIncludes  []string
-	}
 	ninjaBuildTemplate := `
 ninja_required_version = 1.3
 
@@ -244,7 +232,7 @@ build all: phony {{range .Tests}}$testbindir/{{.BaseName}} {{end}}
 		return err
 	}
 
-	buildInfo := BuildInfo{
+	buildInfo := layout.ProjectInfo{
 		projectName,
 		filepath.Join(projectRoot, "include"),
 		sources,
