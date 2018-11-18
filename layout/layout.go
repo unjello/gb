@@ -5,6 +5,8 @@ const (
 	Application = iota
 	// Library is a project that other can depend on (include)
 	Library = iota
+	// HeaderOnly is a library that does not require linking
+	HeaderOnly = iota
 	// Unknown means project could not be identified
 	Unknwon = iota
 )
