@@ -8,7 +8,7 @@ const (
 	// HeaderOnly is a library that does not require linking
 	HeaderOnly = iota
 	// Unknown means project could not be identified
-	Unknwon = iota
+	Unknown = iota
 )
 
 // ProjectLayout provides set of functions for describing C++ project
