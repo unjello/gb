@@ -95,7 +95,7 @@ func getSourceFiles(sourceRoot string, buildRoot string) ([]layout.SourceFile, e
 	return sourceFiles, nil
 }
 
-func generateNinjaBuildFile(projectRoot string, buildRoot string, projectName string, isHeaderOnly bool) error {
+func generateNinjaBuildFile(projectRoot string, buildRoot string, projectName string, project layout.ProjectInfo) error {
 	ninjaBuildTemplate := `
 ninja_required_version = 1.3
 
@@ -210,7 +210,7 @@ build all: phony {{range .Tests}}$testbindir/{{.BaseName}} {{end}}
 	}
 
 	var ninjaFile string
-	if isHeaderOnly == true {
+	if project.Type == layout.HeaderOnly {
 		var err error
 		ninjaFile, err = ExecuteTemplate("ninjaBuildTemplate", ninjaTestsOnlyBuildTemplate, buildInfo)
 		if err != nil {
@@ -254,13 +254,11 @@ func GenerateBuildScripts() {
 		log.Fatal("Failed to understand project structure")
 	}
 
-	isHeaderOnly := project.Type == layout.HeaderOnly
-
 	buildRoot, _ := ensureBuildFolderExists(projectRoot)
 
 	projectName := filepath.Base(projectRoot)
 	log.Info("Infering project name from folder: " + tui.Green(projectName))
 
 	generateConanDependencies(buildRoot)
-	generateNinjaBuildFile(projectRoot, buildRoot, projectName, isHeaderOnly)
+	generateNinjaBuildFile(projectRoot, buildRoot, projectName, project)
 }
