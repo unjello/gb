@@ -1,7 +1,6 @@
 package core
 
 import (
-	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -11,39 +10,8 @@ import (
 	"github.com/bmatcuk/doublestar"
 	"github.com/evilsocket/islazy/log"
 	"github.com/evilsocket/islazy/tui"
-
 	"github.com/unjello/gb/layout"
 )
-
-func checkIfSourceFolderExists(project_root string) error {
-	path := filepath.Join(project_root, "src")
-	fi, err := os.Stat(path)
-	if err != nil {
-		log.Warning("Source folder " + tui.Green("src") + " not found in project root. You should create one.")
-		return err
-	}
-	if mode := fi.Mode(); mode.IsDir() != true {
-		log.Warning(tui.Green("src") + " found in project root, but it is not a folder.")
-		return fmt.Errorf("Source folder is not a directory")
-	}
-
-	return nil
-}
-
-func checkIfIncludeFolderExists(project_root string) error {
-	path := filepath.Join(project_root, "include")
-	fi, err := os.Stat(path)
-	if err != nil {
-		log.Warning("Include folder " + tui.Green("include") + " not found in project root. You should create one.")
-		return err
-	}
-	if mode := fi.Mode(); mode.IsDir() != true {
-		log.Warning(tui.Green("include") + " found in project root, but it is not a folder.")
-		return fmt.Errorf("Include folder is not a directory")
-	}
-
-	return nil
-}
 
 func checkIfBuildFolderIsIgnored(project_root string) error {
 	path := filepath.Join(project_root, ".gitignore")
@@ -279,9 +247,14 @@ func GenerateBuildScripts() {
 	}
 	log.Info("Generating build for project dir: " + tui.Dim(projectRoot))
 	checkIfBuildFolderIsIgnored(projectRoot)
-	srcErr := checkIfSourceFolderExists(projectRoot)
-	includeErr := checkIfIncludeFolderExists(projectRoot)
-	isHeaderOnly := srcErr != nil && includeErr == nil
+
+	projectLayout := layout.NewDefaultProjectLayout()
+	project, err := projectLayout.Get(projectRoot)
+	if err != nil {
+		log.Fatal("Failed to understand project structure")
+	}
+
+	isHeaderOnly := project.Type == layout.HeaderOnly
 
 	buildRoot, _ := ensureBuildFolderExists(projectRoot)
 

@@ -5,6 +5,7 @@ import (
 	"path/filepath"
 
 	"github.com/evilsocket/islazy/log"
+	"github.com/evilsocket/islazy/tui"
 	"github.com/spf13/afero"
 )
 
@@ -24,16 +25,22 @@ type DefaultProject struct{}
 func (DefaultProject) Get(root string) (ProjectInfo, error) {
 	var meta ProjectInfo
 
-	isLib, _ := isLibrary(root)
-	if isLib {
+	libType, _ := isLibrary(root)
+	switch libType {
+	case Library:
+		log.Info("Detected project type (default layout): " + tui.Green("Library"))
 		meta.Type = Library
-	} else {
+	case HeaderOnly:
+		log.Info("Detected project type (default layout): " + tui.Green("Header-only Library"))
+		meta.Type = HeaderOnly
+	case Unknown:
 		isApp, _ := isApplication(root)
 		if isApp {
+			log.Info("Detected project type (default layout): " + tui.Green("Application"))
 			meta.Type = Application
 		} else {
 			log.Error(errorUnknownProject)
-			meta.Type = Unknwon
+			meta.Type = Unknown
 			return meta, fmt.Errorf(errorUnknownProject)
 		}
 	}
@@ -48,8 +55,16 @@ func (DefaultProject) Get(root string) (ProjectInfo, error) {
 // any headers to noone.
 // This function does not verify existance of `src` folder, as
 // header-only libraries are as good as any. (if not better:)
-func isLibrary(root string) (bool, error) {
-	return includeFolderExists(root)
+func isLibrary(root string) (int8, error) {
+	if ok, err := includeFolderExists(root); ok {
+		if ok, err := srcFolderExists(root); ok {
+			return Library, err
+		} else {
+			return HeaderOnly, err
+		}
+	} else {
+		return Unknown, err
+	}
 }
 
 // IsApplication returns true if project has NOT `include` folder,
@@ -58,8 +73,7 @@ func isLibrary(root string) (bool, error) {
 // function (or equivalnt). We lave it up to compiler, to decide
 // whether to fail or note.
 func isApplication(root string) (bool, error) {
-	isLibrary, _ := isLibrary(root)
-	if isLibrary {
+	if ok, _ := isLibrary(root); ok != Unknown {
 		return false, nil
 	}
 
