@@ -247,14 +247,13 @@ func GenerateBuildScripts() {
 	}
 	log.Info("Generating build for project dir: " + tui.Dim(projectRoot))
 	checkIfBuildFolderIsIgnored(projectRoot)
+	buildRoot, _ := ensureBuildFolderExists(projectRoot)
 
 	projectLayout := layout.NewDefaultProjectLayout()
 	project, err := projectLayout.Get(projectRoot)
 	if err != nil {
 		log.Fatal("Failed to understand project structure")
 	}
-
-	buildRoot, _ := ensureBuildFolderExists(projectRoot)
 
 	projectName := filepath.Base(projectRoot)
 	log.Info("Infering project name from folder: " + tui.Green(projectName))
