@@ -22,10 +22,10 @@ var AppFs = afero.NewOsFs()
 // to Ruby or Java's Maven.
 type DefaultProject struct{}
 
-func (DefaultProject) Get(root string) (ProjectInfo, error) {
+func (DefaultProject) Get(projectRoot string, buildRoot string) (ProjectInfo, error) {
 	var meta ProjectInfo
 
-	libType, _ := isLibrary(root)
+	libType, _ := isLibrary(projectRoot)
 	switch libType {
 	case Library:
 		log.Info("Detected project type (default layout): " + tui.Green("Library"))
@@ -34,7 +34,7 @@ func (DefaultProject) Get(root string) (ProjectInfo, error) {
 		log.Info("Detected project type (default layout): " + tui.Green("Header-only Library"))
 		meta.Type = HeaderOnly
 	case Unknown:
-		isApp, _ := isApplication(root)
+		isApp, _ := isApplication(projectRoot)
 		if isApp {
 			log.Info("Detected project type (default layout): " + tui.Green("Application"))
 			meta.Type = Application
@@ -44,6 +44,18 @@ func (DefaultProject) Get(root string) (ProjectInfo, error) {
 			return meta, fmt.Errorf(errorUnknownProject)
 		}
 	}
+
+	sources, err := GetProjectFiles(filepath.Join(projectRoot, "src"), "**/*.cpp", buildRoot)
+	if err != nil {
+		return meta, err
+	}
+	meta.Sources = sources
+
+	tests, err := GetProjectFiles(filepath.Join(projectRoot, "test"), "**/*.cpp", buildRoot)
+	if err != nil {
+		return meta, err
+	}
+	meta.Tests = tests
 
 	return meta, nil
 }

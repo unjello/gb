@@ -1,5 +1,14 @@
 package layout
 
+import (
+	"log"
+	"path/filepath"
+	"strings"
+
+	"github.com/bmatcuk/doublestar"
+	"github.com/evilsocket/islazy/tui"
+)
+
 const (
 	// Application describes project that results in executable
 	Application = iota
@@ -13,7 +22,7 @@ const (
 
 // ProjectLayout provides set of functions for describing C++ project
 type ProjectLayout interface {
-	Get(root string) (ProjectInfo, error)
+	Get(projectRoot string, buildRoot string) (ProjectInfo, error)
 }
 
 // SourceFile handles metainformation for file that can be compiled
@@ -32,4 +41,28 @@ type ProjectInfo struct {
 	Sources        []SourceFile
 	Tests          []SourceFile
 	TestsIncludes  []string
+}
+
+func GetProjectFiles(root string, globPattern string, buildRoot string) ([]SourceFile, error) {
+	sourceGlob := filepath.Join(root, globPattern)
+	files, err := doublestar.Glob(sourceGlob)
+	if err != nil {
+		log.Fatal("Failed to find sources using pattern: " + tui.Red(sourceGlob))
+		log.Fatal(err.Error())
+		return nil, err
+	}
+
+	sourceFiles := make([]SourceFile, 0)
+	for _, file := range files {
+		relPath, err := filepath.Rel(buildRoot, file)
+		if err != nil {
+			log.Fatal("Failed to reach " + tui.Dim(file) + " from build dir: " + tui.Dim(buildRoot))
+			return nil, err
+		}
+		base := filepath.Base(file)
+		ext := filepath.Ext(base)
+		baseName := strings.TrimRight(base, ext)
+		sourceFiles = append(sourceFiles, SourceFile{file, relPath, baseName, ext})
+	}
+	return sourceFiles, nil
 }

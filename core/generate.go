@@ -5,9 +5,7 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
-	"strings"
 
-	"github.com/bmatcuk/doublestar"
 	"github.com/evilsocket/islazy/log"
 	"github.com/evilsocket/islazy/tui"
 	"github.com/unjello/gb/layout"
@@ -69,30 +67,6 @@ json
 	runner.RunWithOutput([]string{"conan", "install", "-if", "build/", "build/"})
 
 	return nil
-}
-
-func getSourceFiles(sourceRoot string, buildRoot string) ([]layout.SourceFile, error) {
-	sourceGlob := filepath.Join(sourceRoot, "**/*.cpp")
-	files, err := doublestar.Glob(sourceGlob)
-	if err != nil {
-		log.Fatal("Failed to find sources using pattern: " + tui.Red(sourceGlob))
-		log.Fatal(err.Error())
-		return nil, err
-	}
-
-	sourceFiles := make([]layout.SourceFile, 0)
-	for _, file := range files {
-		relPath, err := filepath.Rel(buildRoot, file)
-		if err != nil {
-			log.Fatal("Failed to reach " + tui.Dim(file) + " from build dir: " + tui.Dim(buildRoot))
-			return nil, err
-		}
-		base := filepath.Base(file)
-		ext := filepath.Ext(base)
-		baseName := strings.TrimRight(base, ext)
-		sourceFiles = append(sourceFiles, layout.SourceFile{file, relPath, baseName, ext})
-	}
-	return sourceFiles, nil
 }
 
 func generateNinjaBuildFile(projectRoot string, buildRoot string, projectName string, project layout.ProjectInfo) error {
@@ -188,24 +162,12 @@ build all: phony {{range .Tests}}$testbindir/{{.BaseName}} {{end}}
 		return err
 	}
 
-	sources, err := getSourceFiles(filepath.Join(projectRoot, "src"), buildRoot)
-	if err != nil {
-		log.Fatal(err.Error())
-		return err
-	}
-
-	tests, err := getSourceFiles(filepath.Join(projectRoot, "test"), buildRoot)
-	if err != nil {
-		log.Fatal(err.Error())
-		return err
-	}
-
 	buildInfo := layout.ProjectInfo{
 		layout.Library,
 		projectName,
 		filepath.Join(projectRoot, "include"),
-		sources,
-		tests,
+		project.Sources,
+		project.Tests,
 		doctest.IncludePaths,
 	}
 
@@ -250,7 +212,7 @@ func GenerateBuildScripts() {
 	buildRoot, _ := ensureBuildFolderExists(projectRoot)
 
 	projectLayout := layout.NewDefaultProjectLayout()
-	project, err := projectLayout.Get(projectRoot)
+	project, err := projectLayout.Get(projectRoot, buildRoot)
 	if err != nil {
 		log.Fatal("Failed to understand project structure")
 	}
