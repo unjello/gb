@@ -141,8 +141,8 @@ rule link
   description = LINK $out
 
 {{range .Tests}}
-build $testsbuilddir/{{.BaseName}}.o: testcxx {{.RelPath}}
-build $testbindir/{{.BaseName}}: link $testsbuilddir/{{.BaseName}}.o
+build $testsbuilddir/{{getTestName .}}.o: testcxx {{.RelPath}}
+build $testbindir/{{getTestName .}}: link $testsbuilddir/{{.BaseName}}.o
 {{end}}
 
 
