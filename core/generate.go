@@ -79,7 +79,7 @@ testsbuilddir = out/tests
 bindir = bin/
 testbindir = $bindir/tests
 
-cxxflags = -Wall -Werror -std=c++17
+cxxflags = -Wall -Werror -std=c++2a -fconcepts
 ldflags = -L$builddir
 testcxxflags = {{range .TestsIncludes}}-I {{.}} {{end}}
 
@@ -125,7 +125,7 @@ testsbuilddir = out/tests
 bindir = bin/
 testbindir = $bindir/tests
 
-cxxflags = -Wall -Werror -std=c++17
+cxxflags = -Wall -Werror -std=c++2a -fconcepts
 ldflags = -L$builddir
 testcxxflags = {{range .TestsIncludes}}-I {{.}} {{end}} -I {{.PublicIncludes}}
 
