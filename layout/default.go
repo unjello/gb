@@ -4,8 +4,6 @@ import (
 	"fmt"
 	"path/filepath"
 
-	"github.com/evilsocket/islazy/log"
-	"github.com/evilsocket/islazy/tui"
 	"github.com/spf13/afero"
 )
 
@@ -25,95 +23,53 @@ type DefaultProject struct{}
 func (DefaultProject) Get(projectRoot string, buildRoot string) (ProjectInfo, error) {
 	var meta ProjectInfo
 
-	libType, _ := isLibrary(projectRoot)
-	switch libType {
-	case Library:
-		log.Info("Detected project type (default layout): " + tui.Green("Library"))
-		meta.Type = Library
-	case HeaderOnly:
-		log.Info("Detected project type (default layout): " + tui.Green("Header-only Library"))
-		meta.Type = HeaderOnly
-	case Unknown:
-		isApp, _ := isApplication(projectRoot)
-		if isApp {
-			log.Info("Detected project type (default layout): " + tui.Green("Application"))
-			meta.Type = Application
+	meta.Path.Includes = filepath.Join(projectRoot, "include")
+	meta.PublicIncludes = meta.Path.Includes
+	meta.Path.Sources = filepath.Join(projectRoot, "src")
+	meta.Path.Tests = filepath.Join(projectRoot, "test")
+
+	includeOk, _ := afero.DirExists(AppFs, meta.Path.Includes)
+	srcOk, _ := afero.DirExists(AppFs, meta.Path.Sources)
+	testOk, _ := afero.DirExists(AppFs, meta.Path.Tests)
+
+	if includeOk {
+		meta.HasPublicIncludes = true
+		if srcOk {
+			meta.Type = Library
 		} else {
-			log.Error(errorUnknownProject)
-			meta.Type = Unknown
-			return meta, fmt.Errorf(errorUnknownProject)
+			meta.Type = HeaderOnly
 		}
+	} else if srcOk {
+		meta.HasPublicIncludes = false
+		meta.Type = Application
+	} else {
+		meta.Type = Unknown
+		return meta, fmt.Errorf(errorUnknownProject)
 	}
 
-	sources, err := GetProjectFiles(filepath.Join(projectRoot, "src"), "**/*.cpp", buildRoot)
-	if err != nil {
-		return meta, err
+	if srcOk {
+		sources, err := GetProjectFiles(filepath.Join(projectRoot, "src"), "**/*.cpp", buildRoot)
+		if err != nil {
+			return meta, err
+		}
+		meta.Sources = sources
 	}
-	meta.Sources = sources
 
-	tests, err := GetProjectFiles(filepath.Join(projectRoot, "test"), "**/*.cpp", buildRoot)
-	if err != nil {
-		return meta, err
+	if testOk {
+		meta.HasTests = true
+
+		tests, err := GetProjectFiles(filepath.Join(projectRoot, "test"), "**/*.cpp", buildRoot)
+		if err != nil {
+			return meta, err
+		}
+		meta.Tests = tests
 	}
-	meta.Tests = tests
 
 	return meta, nil
-}
-
-// IsLibrary returns true if a project has `include` folder,
-// that has public headers for the project. Those are headers
-// that can be included by other projects. Binary projects will
-// not have anyone depend on them, therefore they will not expose
-// any headers to noone.
-// This function does not verify existance of `src` folder, as
-// header-only libraries are as good as any. (if not better:)
-func isLibrary(root string) (int8, error) {
-	if ok, err := includeFolderExists(root); ok {
-		if ok, err := srcFolderExists(root); ok {
-			return Library, err
-		} else {
-			return HeaderOnly, err
-		}
-	} else {
-		return Unknown, err
-	}
-}
-
-// IsApplication returns true if project has NOT `include` folder,
-// and includes `src` folder. This does not verify whether there
-// are source files inside, or if any of them actually has `main`
-// function (or equivalnt). We lave it up to compiler, to decide
-// whether to fail or note.
-func isApplication(root string) (bool, error) {
-	if ok, _ := isLibrary(root); ok != Unknown {
-		return false, nil
-	}
-
-	return srcFolderExists(root)
 }
 
 // NewDefaultProjectLayout returns implementation of ProjectLayout
 // for Gb default layout
 func NewDefaultProjectLayout() ProjectLayout {
 	return DefaultProject{}
-}
-
-func srcFolderExists(root string) (bool, error) {
-	srcPath := filepath.Join(root, "src")
-	ok, err := afero.DirExists(AppFs, srcPath)
-	if ok {
-		return ok, err
-	}
-
-	return false, err
-}
-
-func includeFolderExists(root string) (bool, error) {
-	includePath := filepath.Join(root, "include")
-	ok, err := afero.DirExists(AppFs, includePath)
-	if ok {
-		return ok, err
-	}
-
-	return false, err
 }

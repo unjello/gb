@@ -35,12 +35,19 @@ type SourceFile struct {
 
 // ProjectInfo contains all information needed to build a project
 type ProjectInfo struct {
-	Type           int8
-	Name           string
-	PublicIncludes string
-	Sources        []SourceFile
-	Tests          []SourceFile
-	TestsIncludes  []string
+	Type              int8
+	Name              string
+	PublicIncludes    string
+	Sources           []SourceFile
+	Tests             []SourceFile
+	TestsIncludes     []string
+	HasTests          bool
+	HasPublicIncludes bool
+	Path              struct {
+		Includes string
+		Sources  string
+		Tests    string
+	}
 }
 
 func GetProjectFiles(root string, globPattern string, buildRoot string) ([]SourceFile, error) {

@@ -162,14 +162,9 @@ build all: phony {{range .Tests}}$testbindir/{{getTestName .}} {{end}}
 		return err
 	}
 
-	buildInfo := layout.ProjectInfo{
-		layout.Library,
-		projectName,
-		filepath.Join(projectRoot, "include"),
-		project.Sources,
-		project.Tests,
-		doctest.IncludePaths,
-	}
+	buildInfo := project
+	buildInfo.Name = projectName
+	buildInfo.TestsIncludes = doctest.IncludePaths
 
 	var ninjaFile string
 	if project.Type == layout.HeaderOnly {
