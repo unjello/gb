@@ -24,7 +24,7 @@ If a project has `src` folder, but no `include` folder, it is considered to be a
 
 If `test` folder is present, each `.cpp` file inside is compiled independently. If project is a library, each test will automatically be linked with it, and will have library's public headers in include path. Otherwise the test is expected to include file under test (be it header or source file) manually.
 
-The framework of choice for Unit Testing is `doctest`.
+The framework of choice for Unit Testing is [doctest](https://github.com/onqtam/doctest).
 
 ## License
 
