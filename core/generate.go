@@ -142,11 +142,11 @@ rule link
 
 {{range .Tests}}
 build $testsbuilddir/{{getTestName .}}.o: testcxx {{.RelPath}}
-build $testbindir/{{getTestName .}}: link $testsbuilddir/{{.BaseName}}.o
+build $testbindir/{{getTestName .}}: link $testsbuilddir/{{getTestName .}}.o
 {{end}}
 
 
-build all: phony {{range .Tests}}$testbindir/{{.BaseName}} {{end}}
+build all: phony {{range .Tests}}$testbindir/{{getTestName .}} {{end}}
 
 `
 

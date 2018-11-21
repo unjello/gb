@@ -3,12 +3,20 @@ package core
 import (
 	"bytes"
 	"html/template"
+	"strings"
 
 	"github.com/unjello/gb/layout"
 )
 
 func getTestName(file layout.SourceFile) string {
-	return file.BaseName
+	slices := strings.Split(strings.TrimRight(file.RelPath, file.Extension), "/")
+	filtered := slices[:0]
+	for _, v := range slices {
+		if v != ".." {
+			filtered = append(filtered, v)
+		}
+	}
+	return strings.Join(filtered, "_")
 }
 
 func ExecuteTemplate(templateName string, templateData string, info interface{}) (string, error) {
