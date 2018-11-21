@@ -26,6 +26,17 @@ If `test` folder is present, each `.cpp` file inside is compiled independently. 
 
 The framework of choice for Unit Testing is [doctest](https://github.com/onqtam/doctest).
 
+## How?
+
+Just point your terminal to the root folder of the project (where all your `include`, `src` etc folders are), and type:
+
+```bash
+$ gb make
+...
+```
+
+GB will automatically detect your layout, compile all files, build the tests and run those tests, presenting you the reports.
+
 ## License
 
 - CCO (~Public Domain)
