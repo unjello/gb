@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"regexp"
 
 	"github.com/evilsocket/islazy/log"
 )
@@ -29,6 +30,12 @@ type ConanBuildInfo struct {
 	Settings     Setting
 }
 
+type ConanPackage struct {
+	Name    string
+	Version string
+	Channel string
+}
+
 func ReadConanBuildInfo(path string) (ConanBuildInfo, error) {
 	jsonFile, err := os.Open(path)
 	if err != nil {
@@ -49,4 +56,14 @@ func GetTestingPackage(info ConanBuildInfo) (Dependency, error) {
 		}
 	}
 	return Dependency{}, fmt.Errorf("Not found")
+}
+
+func ParsePackageString(name string) (ConanPackage, error) {
+	var re = regexp.MustCompile(`(?m)([^\/]+)\/(\d+\.\d+\.\d+)\@([^\/]+\/[^$]+)`)
+	info := re.FindStringSubmatch(name)
+	if info == nil {
+		return ConanPackage{}, fmt.Errorf("Could not parse conan package string")
+	}
+
+	return ConanPackage{info[1], info[2], info[3]}, nil
 }
