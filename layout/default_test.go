@@ -11,17 +11,21 @@ func init() {
 	log.Level = log.FATAL + 1
 }
 
-func TestIsLibraryWhenOnlyIncludeFolderPresent(t *testing.T) {
+func TestIsHeaderOnlyLibraryWhenOnlyIncludeFolderPresent(t *testing.T) {
 	AppFs = afero.NewMemMapFs()
 	for _, folder := range []string{"include", "build", "doc"} {
 		AppFs.MkdirAll(folder, 0755)
 	}
 
 	layout := NewDefaultProjectLayout()
-	ok, err := layout.IsLibrary("./")
+	meta, err := layout.Get("./", "./build")
 
-	if !ok {
-		t.Errorf("Expected true, but got %t: %q", ok, err)
+	if err != nil {
+		t.Errorf("Expected no error, but got: %q", err)
+	}
+
+	if meta.Type != HeaderOnly {
+		t.Errorf("Expected project to be HeaderOnly, but got: %q", meta.Type)
 	}
 }
 
@@ -32,24 +36,14 @@ func TestIsLibraryWhenIncludeAndSrcFoldersPresent(t *testing.T) {
 	}
 
 	layout := NewDefaultProjectLayout()
-	ok, err := layout.IsLibrary("./")
+	meta, err := layout.Get("./", "./build")
 
-	if !ok {
-		t.Errorf("Expected true, but got %t: %q", ok, err)
-	}
-}
-
-func TestIsNotLibraryWhenIncludeFolderNotPresent(t *testing.T) {
-	AppFs = afero.NewMemMapFs()
-	for _, folder := range []string{"build", "doc", "src"} {
-		AppFs.MkdirAll(folder, 0755)
+	if err != nil {
+		t.Errorf("Expected no error, but got: %q", err)
 	}
 
-	layout := NewDefaultProjectLayout()
-	ok, err := layout.IsLibrary("./")
-
-	if ok {
-		t.Errorf("Expected false, but got %t: %q", ok, err)
+	if meta.Type != Library {
+		t.Errorf("Expected project to be Library, but got: %q", meta.Type)
 	}
 }
 
@@ -60,10 +54,14 @@ func TestIsApplicationWhenIncludeIsNotButSrcFolderPresent(t *testing.T) {
 	}
 
 	layout := NewDefaultProjectLayout()
-	ok, err := layout.IsApplication("./")
+	meta, err := layout.Get("./", "./build")
 
-	if !ok {
-		t.Errorf("Expected true, but got %t: %q", ok, err)
+	if err != nil {
+		t.Errorf("Expected no error, but got: %q", err)
+	}
+
+	if meta.Type != Application {
+		t.Errorf("Expected project to be Application, but got: %q", meta.Type)
 	}
 }
 
@@ -74,23 +72,9 @@ func TestIsNotApplicationWhenBothIncludeAndSourceFoldersNotPresent(t *testing.T)
 	}
 
 	layout := NewDefaultProjectLayout()
-	ok, err := layout.IsApplication("./")
+	_, err := layout.Get("./", "./build")
 
-	if ok {
-		t.Errorf("Expected false, but got %t: %q", ok, err)
-	}
-}
-
-func TestIsNotApplicationWhenIncludeFolderPresent(t *testing.T) {
-	AppFs = afero.NewMemMapFs()
-	for _, folder := range []string{"include", "build", "doc", "src"} {
-		AppFs.MkdirAll(folder, 0755)
-	}
-
-	layout := NewDefaultProjectLayout()
-	ok, err := layout.IsApplication("./")
-
-	if ok {
-		t.Errorf("Expected false, but got %t: %q", ok, err)
+	if err == nil {
+		t.Errorf("Expected an error, but got: %q", err)
 	}
 }
