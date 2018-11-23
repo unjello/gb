@@ -1,6 +1,8 @@
 package cmd
 
 import (
+	"os"
+
 	"github.com/spf13/cobra"
 	"github.com/unjello/gb/core"
 )
@@ -14,6 +16,8 @@ var testCmd = &cobra.Command{
 	Short: "Run tests",
 	Long:  "Run tests",
 	Run: func(cmd *cobra.Command, args []string) {
-		core.RunTests()
+		if err := core.RunTests(); err != nil {
+			os.Exit(exitCodeTestsFailed)
+		}
 	},
 }

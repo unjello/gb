@@ -1,6 +1,7 @@
 package core
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 
@@ -28,8 +29,17 @@ func RunTests() error {
 	}
 
 	runner := OsCommandRunner{}
+	anyFailed := false
 	for _, file := range files {
-		runner.RunWithOutput([]string{file})
+		err := runner.RunWithOutput([]string{file})
+		if err != nil {
+			anyFailed = true
+		}
 	}
+
+	if anyFailed {
+		return fmt.Errorf("Some tests failed")
+	}
+
 	return nil
 }

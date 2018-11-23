@@ -11,6 +11,10 @@ import (
 	"github.com/unjello/gb/core"
 )
 
+const (
+	exitCodeTestsFailed = 1
+)
+
 var cfgFile string
 
 var rootCmd = &cobra.Command{
