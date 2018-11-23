@@ -42,15 +42,15 @@ func ensureBuildFolderExists(project_root string) (string, error) {
 	return path, nil
 }
 
-func generateConanDependencies(build_root string) error {
+func generateConanDependencies(build_root string, dependencies []string) error {
 	conanFileTemplate := `
-[requires]
-doctest/2.0.0@unjello/testing
-
+[requires]{{range .}}
+{{ . }}
+{{end}}
 [generators]
 json
 `
-	conanFile, err := ExecuteTemplate("conanFileTemplate", conanFileTemplate, nil)
+	conanFile, err := ExecuteTemplate("conanFileTemplate", conanFileTemplate, dependencies)
 	if err != nil {
 		return err
 	}
@@ -215,6 +215,8 @@ func GenerateBuildScripts() {
 	projectName := filepath.Base(projectRoot)
 	log.Info("Infering project name from folder: " + tui.Green(projectName))
 
-	generateConanDependencies(buildRoot)
+	if project.Dependencies != nil {
+		generateConanDependencies(buildRoot, project.Dependencies)
+	}
 	generateNinjaBuildFile(projectRoot, buildRoot, projectName, project)
 }

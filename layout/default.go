@@ -63,6 +63,7 @@ func (DefaultProject) Get(projectRoot string, buildRoot string) (ProjectInfo, er
 			return meta, err
 		}
 		meta.Tests = tests
+		meta.Dependencies = []string{"doctest/2.0.0@unjello/testing"}
 	}
 
 	return meta, nil

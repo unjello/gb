@@ -48,6 +48,7 @@ type ProjectInfo struct {
 		Sources  string
 		Tests    string
 	}
+	Dependencies []string
 }
 
 func GetProjectFiles(root string, globPattern string, buildRoot string) ([]SourceFile, error) {
