@@ -56,6 +56,11 @@ $ gb make
 
 GB will automatically detect your layout, compile all files, build the tests and run those tests, presenting you the reports.
 
+= See Also
+- https://conan.io/[conan] - excelent package manager for C/C++
+- https://ninja-build.org/[ninja] - small and fast build system, `make` alternative
+- https://github.com/onqtam/doctest[doctest] - blazing fast header-only unit-testing framework
+
 = License
 
 - CCO (~Public Domain)
