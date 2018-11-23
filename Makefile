@@ -17,3 +17,6 @@ install: build
 
 godep:
 	@go get -u github.com/golang/dep/...
+
+test:
+	@go test ./...
