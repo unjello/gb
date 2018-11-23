@@ -1,0 +1,61 @@
+= Name
+
+gb - Is a yet another build generator for C++
+
+= Synopsis
+
+[source, sh]
+----
+gb [command]
+----
+
+= Description
+
+*Gb* aims at making building process of C/C++ projects easier. It uses convention-over-configuration approach that seem to work well for https://rubyonrails.org/doctrine/[Ruby-on-Rails] and https://maven.apache.org/guides/introduction/introduction-to-the-standard-directory-layout.html[Maven], in order to remove boilerplate configuration. The structure used is based on excelent project https://api.csswg.org/bikeshed/?force=1&url=https://raw.githubusercontent.com/vector-of-bool/pitchfork/develop/data/spec.bs#tld[pitchfork], with few more restrictions, e.g. assumes _separate header placement_ layout.
+
+*Gb* expects following folders in root directory:
+
+.Default directory layout
+|===========
+| src/ | Application/Library sources
+| include/ | Library public headers
+| test/ | Application/Library Unit-Test sources
+|===========
+
+== Project type
+
+If a project contains _public headers_ folder, the build target will be a Library. If there is no _source_ folder it will be considered _header only library_ and on tests (if present) will be run, with no other output being generated.
+
+If a project contains _source_ folder and no _public headers_ it'll be considered an Application, and an executable will be produced in `build/bin` folder.
+
+
+== Unit-test
+
+If `test` folder is present, each `.cpp` file inside is compiled independently. If project is a library, each test will automatically be linked with it, and will have library's public headers in include path. Otherwise the test is expected to include file under test (be it header or source file) manually.
+
+The framework of choice for Unit Testing is [doctest](https://github.com/onqtam/doctest).
+
+
+= Commands
+
+- `make` - generates, builds and tests a project
+- `generate` - creates `build/` folder, with project configuration for dependent tools, e.g. https://conan.io/[conan] and https://ninja-build.org/[ninja]. Runs _conan_ to fetch and compile (if necessary) all remote dependencies.
+- `build` - runs https://ninja-build.org/[ninja] to build a project.
+- `test` - runs all compiled unit-tests and presents the report
+
+
+= Example 
+
+Just point your terminal to the root folder of the project (where all your `include`, `src` etc folders are), and type:
+
+[source,sh]
+----
+$ gb make
+...
+----
+
+GB will automatically detect your layout, compile all files, build the tests and run those tests, presenting you the reports.
+
+= License
+
+- CCO (~Public Domain)
