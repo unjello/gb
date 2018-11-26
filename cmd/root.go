@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"github.com/evilsocket/islazy/log"
+	"github.com/evilsocket/islazy/tui"
 	homedir "github.com/mitchellh/go-homedir"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -65,9 +66,9 @@ func initConfig() {
 	viper.AutomaticEnv()
 
 	if err := viper.ReadInConfig(); err == nil {
-		fmt.Println("Using config file:", viper.ConfigFileUsed())
+		log.Info("Using config file: " + tui.Dim(viper.ConfigFileUsed()))
 	} else {
-		fmt.Println(err)
+		log.Info(err.Error())
 	}
 
 	log.Level = log.ERROR
