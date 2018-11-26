@@ -17,6 +17,12 @@ const (
 
 var cfgFile string
 
+var (
+	verbose bool
+	debug   bool
+	quiet   bool
+)
+
 var rootCmd = &cobra.Command{
 	Use:   "gb",
 	Short: "gb: Great Builder, The",
@@ -32,8 +38,13 @@ func Execute() {
 
 func init() {
 	cobra.OnInitialize(initConfig)
-	log.Level = log.DEBUG
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.gb.yaml)")
+	rootCmd.PersistentFlags().BoolVarP(&verbose, "verbose", "v", false, "verbose output")
+	rootCmd.PersistentFlags().BoolVarP(&debug, "debug", "d", false, "debug output")
+	rootCmd.PersistentFlags().BoolVarP(&quiet, "quiet", "q", false, "no output")
+	viper.BindPFlag("verbose", rootCmd.PersistentFlags().Lookup("verbose"))
+	viper.BindPFlag("debug", rootCmd.PersistentFlags().Lookup("debug"))
+	viper.BindPFlag("quiet", rootCmd.PersistentFlags().Lookup("quiet"))
 }
 
 func initConfig() {
@@ -47,12 +58,26 @@ func initConfig() {
 		}
 
 		viper.AddConfigPath(home)
-		viper.SetConfigName(".cobra-example")
+		viper.SetConfigName(".gb")
 	}
 
+	viper.SetEnvPrefix("GB")
 	viper.AutomaticEnv()
 
 	if err := viper.ReadInConfig(); err == nil {
 		fmt.Println("Using config file:", viper.ConfigFileUsed())
+	} else {
+		fmt.Println(err)
+	}
+
+	log.Level = log.ERROR
+	if viper.GetBool("verbose") {
+		log.Level = log.INFO
+	}
+	if viper.GetBool("debug") {
+		log.Level = log.DEBUG
+	}
+	if viper.GetBool("quiet") {
+		log.Level = log.FATAL
 	}
 }
