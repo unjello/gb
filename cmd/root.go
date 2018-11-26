@@ -65,11 +65,7 @@ func initConfig() {
 	viper.SetEnvPrefix("GB")
 	viper.AutomaticEnv()
 
-	if err := viper.ReadInConfig(); err == nil {
-		log.Info("Using config file: " + tui.Dim(viper.ConfigFileUsed()))
-	} else {
-		log.Info(err.Error())
-	}
+	err := viper.ReadInConfig()
 
 	log.Level = log.ERROR
 	if viper.GetBool("verbose") {
@@ -80,5 +76,11 @@ func initConfig() {
 	}
 	if viper.GetBool("quiet") {
 		log.Level = log.FATAL
+	}
+
+	if err == nil {
+		log.Info("Using config file: " + tui.Dim(viper.ConfigFileUsed()))
+	} else {
+		log.Info(err.Error())
 	}
 }
