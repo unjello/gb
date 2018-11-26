@@ -63,6 +63,7 @@ func initConfig() {
 			viper.AddConfigPath("/etc/gb/")
 		}
 		viper.AddConfigPath(home)
+		viper.AddConfigPath(".")
 		viper.SetConfigName(".gb")
 	}
 
