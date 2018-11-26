@@ -1,6 +1,7 @@
 package core
 
 import (
+	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -149,22 +150,24 @@ build $testbindir/{{getTestName .}}: link $testsbuilddir/{{getTestName .}}.o
 build all: phony {{range .Tests}}$testbindir/{{getTestName .}} {{end}}
 
 `
-
-	info, err := ReadConanBuildInfo(filepath.Join(buildRoot, "conanbuildinfo.json"))
-	if err != nil {
-		log.Fatal(err.Error())
-		return err
-	}
-
-	doctest, err := GetTestingPackage(info)
-	if err != nil {
-		log.Fatal(err.Error())
-		return err
-	}
-
 	buildInfo := project
 	buildInfo.Name = projectName
-	buildInfo.TestsIncludes = doctest.IncludePaths
+
+	if buildInfo.Dependencies != nil {
+		info, err := ReadConanBuildInfo(filepath.Join(buildRoot, "conanbuildinfo.json"))
+		if err != nil {
+			log.Fatal(err.Error())
+			return err
+		}
+
+		doctest, err := GetTestingPackage(info)
+		if err != nil {
+			log.Fatal(err.Error())
+			return err
+		}
+
+		buildInfo.TestsIncludes = doctest.IncludePaths
+	}
 
 	var ninjaFile string
 	if project.Type == layout.HeaderOnly {
@@ -185,7 +188,7 @@ build all: phony {{range .Tests}}$testbindir/{{getTestName .}} {{end}}
 
 	path := filepath.Join(buildRoot, "build.ninja")
 	log.Debug("Generating ninja build file " + tui.Dim(path))
-	err = ioutil.WriteFile(path, []byte(ninjaFile), 0664)
+	err := ioutil.WriteFile(path, []byte(ninjaFile), 0664)
 	if err != nil {
 		log.Error("Failed to create a file " + tui.Green(path) + "\n" + tui.Red(err.Error()))
 		return err
@@ -216,6 +219,7 @@ func GenerateBuildScripts() {
 	log.Info("Infering project name from folder: " + tui.Green(projectName))
 
 	if project.Dependencies != nil {
+		fmt.Println(project.Dependencies)
 		generateConanDependencies(buildRoot, project.Dependencies)
 	}
 	generateNinjaBuildFile(projectRoot, buildRoot, projectName, project)
