@@ -3,6 +3,7 @@ package cmd
 import (
 	"fmt"
 	"os"
+	"runtime"
 
 	"github.com/evilsocket/islazy/log"
 	"github.com/evilsocket/islazy/tui"
@@ -58,6 +59,9 @@ func initConfig() {
 			os.Exit(1)
 		}
 
+		if runtime.GOOS != "windows" {
+			viper.AddConfigPath("/etc/gb/")
+		}
 		viper.AddConfigPath(home)
 		viper.SetConfigName(".gb")
 	}
