@@ -9,6 +9,7 @@ import (
 
 	"github.com/evilsocket/islazy/log"
 	"github.com/evilsocket/islazy/tui"
+	"github.com/spf13/viper"
 	"github.com/unjello/gb/layout"
 )
 
@@ -74,7 +75,7 @@ func generateNinjaBuildFile(projectRoot string, buildRoot string, projectName st
 	ninjaBuildTemplate := `
 ninja_required_version = 1.3
 
-cxx = g++-8
+cxx = {{.Cxx}}
 builddir = out
 testsbuilddir = out/tests
 bindir = bin/
@@ -82,7 +83,7 @@ testbindir = $bindir/tests
 
 cxxflags = -Wall -Werror -std=c++2a -fconcepts
 ldflags = -L$builddir
-testcxxflags = {{range .TestsIncludes}}-I {{.}} {{end}}
+testcxxflags = {{range .Project.TestsIncludes}}-I {{.}} {{end}}
 
 
 rule cxx
@@ -101,26 +102,26 @@ rule link
   command = $cxx $linkflags $in -o $out
   description = LINK $out
 
-{{range .Sources}}
+{{range .Project.Sources}}
 build $builddir/{{.BaseName}}.o: cxx {{.RelPath}}
 {{end}}
 
-{{range .Tests}}
+{{range .Project.Tests}}
 build $testsbuilddir/{{.BaseName}}.o: testcxx {{.RelPath}}
 {{end}}
 
-build $bindir/{{.Name}}: link {{range .Sources}}$builddir/{{.BaseName}}.o {{end}}
-{{range .Tests}}
+build $bindir/{{.Project.Name}}: link {{range .Project.Sources}}$builddir/{{.BaseName}}.o {{end}}
+{{range .Project.Tests}}
 build $testbindir/{{.BaseName}}: link $testsbuilddir/{{.BaseName}}.o
 {{end}}
 
-build all: phony $bindir/{{.Name}} {{range .Tests}}$testbindir/{{.BaseName}} {{end}}
+build all: phony $bindir/{{.Project.Name}} {{range .Project.Tests}}$testbindir/{{.BaseName}} {{end}}
 
 `
 	ninjaTestsOnlyBuildTemplate := `
 ninja_required_version = 1.3
 
-cxx = g++-8
+cxx = {{.Cxx}}
 builddir = out
 testsbuilddir = out/tests
 bindir = bin/
@@ -128,7 +129,7 @@ testbindir = $bindir/tests
 
 cxxflags = -Wall -Werror -std=c++2a -fconcepts
 ldflags = -L$builddir
-testcxxflags = {{range .TestsIncludes}}-I {{.}} {{end}} -I {{.PublicIncludes}}
+testcxxflags = {{range .Project.TestsIncludes}}-I {{.}} {{end}} -I {{.PublicIncludes}}
 
 
 rule testcxx
@@ -141,19 +142,22 @@ rule link
   command = $cxx $linkflags $in -o $out
   description = LINK $out
 
-{{range .Tests}}
+{{range .Project.Tests}}
 build $testsbuilddir/{{getTestName .}}.o: testcxx {{.RelPath}}
 build $testbindir/{{getTestName .}}: link $testsbuilddir/{{getTestName .}}.o
 {{end}}
 
 
-build all: phony {{range .Tests}}$testbindir/{{getTestName .}} {{end}}
+build all: phony {{range .Project.Tests}}$testbindir/{{getTestName .}} {{end}}
 
 `
-	buildInfo := project
-	buildInfo.Name = projectName
+	buildInfo := NewBuildInfo()
+	cxx := viper.GetString("cxx")
+	buildInfo.Cxx = cxx
+	buildInfo.Project = project
+	buildInfo.Project.Name = projectName
 
-	if buildInfo.Dependencies != nil {
+	if buildInfo.Project.Dependencies != nil {
 		info, err := ReadConanBuildInfo(filepath.Join(buildRoot, "conanbuildinfo.json"))
 		if err != nil {
 			log.Fatal(err.Error())
@@ -166,7 +170,7 @@ build all: phony {{range .Tests}}$testbindir/{{getTestName .}} {{end}}
 			return err
 		}
 
-		buildInfo.TestsIncludes = doctest.IncludePaths
+		buildInfo.Project.TestsIncludes = doctest.IncludePaths
 	}
 
 	var ninjaFile string
