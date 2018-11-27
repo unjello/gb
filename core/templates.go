@@ -2,8 +2,8 @@ package core
 
 import (
 	"bytes"
-	"html/template"
 	"strings"
+	"text/template"
 
 	"github.com/unjello/gb/layout"
 )
