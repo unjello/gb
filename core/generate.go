@@ -152,7 +152,7 @@ build all: phony {{range .Project.Tests}}$testbindir/{{getTestName .}} {{end}}
 
 `
 	buildInfo := NewBuildInfo()
-	cxx := viper.GetString("cxx")
+	cxx := viper.GetString("compiler")
 	buildInfo.Cxx = cxx
 	buildInfo.Project = project
 	buildInfo.Project.Name = projectName
