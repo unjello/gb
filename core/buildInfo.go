@@ -5,8 +5,9 @@ import (
 )
 
 type BuildInfo struct {
-	Cxx     string
-	Project layout.ProjectInfo
+	Cxx        string
+	CxxOptions string
+	Project    layout.ProjectInfo
 }
 
 func NewBuildInfo() BuildInfo {

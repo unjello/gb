@@ -81,7 +81,7 @@ testsbuilddir = out/tests
 bindir = bin/
 testbindir = $bindir/tests
 
-cxxflags = -Wall -Werror -std=c++2a -fconcepts
+cxxflags = {{.CxxOptions}}
 ldflags = -L$builddir
 testcxxflags = {{range .Project.TestsIncludes}}-I {{.}} {{end}}
 
@@ -127,7 +127,7 @@ testsbuilddir = out/tests
 bindir = bin/
 testbindir = $bindir/tests
 
-cxxflags = -Wall -Werror -std=c++2a -fconcepts
+cxxflags = {{.CxxOptions}}
 ldflags = -L$builddir
 testcxxflags = {{range .Project.TestsIncludes}}-I {{.}} {{end}} -I {{.PublicIncludes}}
 
@@ -154,6 +154,7 @@ build all: phony {{range .Project.Tests}}$testbindir/{{getTestName .}} {{end}}
 	buildInfo := NewBuildInfo()
 	cxx := viper.GetString("compiler")
 	buildInfo.Cxx = cxx
+	buildInfo.CxxOptions = GetCxxOptions(viper.AllSettings())
 	buildInfo.Project = project
 	buildInfo.Project.Name = projectName
 
