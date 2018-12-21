@@ -129,7 +129,7 @@ testbindir = $bindir/tests
 
 cxxflags = {{.CxxOptions}}
 ldflags = -L$builddir
-testcxxflags = {{range .Project.TestsIncludes}}-I {{.}} {{end}} -I {{.PublicIncludes}}
+testcxxflags = {{range .Project.TestsIncludes}}-I {{.}} {{end}} -I {{.Project.PublicIncludes}}
 
 
 rule testcxx
